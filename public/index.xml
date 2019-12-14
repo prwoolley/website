@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Phillip Woolley</title>
+    <link>/</link>
+    <description>Recent content on Phillip Woolley</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Fri, 13 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Comp Bio Python Work</title>
+      <link>/blog/comp-bio-python-work/</link>
+      <pubDate>Fri, 13 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/comp-bio-python-work/</guid>
+      <description>I was lucky enough to have a couple of semesters worth of Python experience going into the final leg of Computational Biology, but even in those courses we had always just used base Python and functions we made on our own. Getting to explore regex notation and regex related functions was particularly interesting, where large strings can be analyzed by creating a series of requisites for the desired substring. One such example of this is as follows, where a string was scanned for restriction enzyme cut sites of various forms, then split at each site, followed finally by scanning each cut sequence for counts of each respective nucleotide.</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>/projects/</link>
+      <pubDate>Sun, 02 Oct 2016 22:55:05 -0400</pubDate>
+      
+      <guid>/projects/</guid>
+      <description>Projects Here are some projects I have been working on:
+  Project 1
+  Project 2
+  </description>
+    </item>
+    
+    <item>
+      <title>Project 1: Exploratory Data Analysis</title>
+      <link>/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project1/</guid>
+      <description>Phillip Woolley, prw474 0. Introduction (4 pts) The three datasets chosen involve lung cancer diagnosis rates and CO2 emissions per state, for both statewide and per capita emissions. One aspect about modern living is the amount of carcinogens that we regularly put out into the environment, including emissions from factories or runoff from all manner of processes. In particular, I was interested in CO2 emissions, and wondering if CO2 emissions have any bearing on lung cancer rates.</description>
+    </item>
+    
+    <item>
+      <title>Project 2: Modeling, Testing, and Predicting</title>
+      <link>/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project2/</guid>
+      <description>Modeling Instructions A knitted R Markdown document (as a PDF) and the raw R Markdown file (as .Rmd) should both be submitted to Canvas by 11:59pm on 11/24/2019. These two documents will be graded jointly, so they must be consistent (i.e., don’t change the R Markdown file without also updating the knitted document). Knit an html copy too, for later! In the .Rmd file for Project 2, you can copy the first code-chunk into your project .</description>
+    </item>
+    
+  </channel>
+</rss>

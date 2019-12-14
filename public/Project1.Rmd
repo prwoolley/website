@@ -1,0 +1,225 @@
+---
+title: 'Project 1: Exploratory Data Analysis'
+author: "SDS348 Fall 2019"
+date: "9/16/2019"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### Phillip Woolley, prw474
+
+#### 0. Introduction (4  pts)
+
+The three datasets chosen involve lung cancer diagnosis rates and CO2 emissions per state, for both statewide and per capita emissions. One aspect about modern living is the amount of carcinogens that we regularly put out into the environment, including emissions from factories or runoff from all manner of processes. In particular, I was interested in CO2 emissions, and wondering if CO2 emissions have any bearing on lung cancer rates. I expect that higher CO2 rates will have an effect on lung cancer but not a direct one, as despite the fact that CO2 isn't necessarily the most carcinogenic compound, high CO2 rates might correspond to higher development or industry in any given state, which more broadly impacts lung cancer rates. The datasets came from either the EPA (for CO2 emissions) or the CDC (cancer rates).
+
+#### 1. Tidying: Rearranging Wide/Long (8 pts)
+```{r}
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+lung_cancer_rate <- read.csv("lung_cancer_rate.csv") #Reading CSVs
+state_percapita_carbon <- read.csv("state_percapita_carbon.csv")
+state_total_carbon <- read.csv("state_total_carbon.csv")
+
+lung_cancer_rate%>%na.omit()-> lung_cancer_rate #removing last few rows with all NAs
+state_percapita_carbon%>%na.omit() -> state_percapita_carbon #removing last few rows with all NAs
+state_percapita_carbon<-subset(state_percapita_carbon,select=-c(2:17,19:20)) #removing all years but 2016, the year in common
+state_total_carbon<-subset(state_total_carbon,select=-c(2:12,14:16))#removing last column with all NAs and all years but 2016
+state_total_carbon%>% na.omit() -> state_total_carbon #removing last few rows with all NAs
+#Datasets are already Tidy (just need to remove one observation in the carbon emission datasets), so the next line is untidying, then retidying the lung cancer dataset.
+lung_cancer_rate%>% pivot_wider(names_from='Region',values_from='AgeAdjustedRate') %>% pivot_longer(c("West","Midwest","South","Northeast"),names_to = 'Region',values_to = 'AgeAdjustedRate') %>% na.omit() -> lung_cancer_rate
+```
+    
+#### 2. Joining/Merging (8 pts)
+
+- Join your datasets into one using a `dplyr` join function
+- If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize
+- Discuss the process in words, including why you chose the join you did
+- Discuss which cases were dropped, if any, and potential problems with this
+```{r}
+lung_cancer_rate%>%full_join(state_percapita_carbon,by=c('Area'='State'))->lung_percapita #saving temporary fulljoin from 2 of the three datasets
+lung_percapita%>%rename(Percapita=X2016)%>% #renaming X2016 into Percapita (for percapita CO2 emissions)
+  full_join(state_total_carbon,by=c('Area'='State'))%>% #fulljoining third dataset
+  rename(StateTotal=X2016)%>% #renaming X2016 into StateTotal (for state total CO2 emissions)
+  na.omit()->data_final
+
+#Need to convert StateTotal CO2 emissions variable into numeric variable
+data_final$StateTotal <- as.numeric(as.character(data_final$StateTotal))
+```
+
+#### 3. Wrangling (40 pts)
+```{r}
+#Table displaying the states and stats for states whose lung cancer rates are above the national average
+data_final %>% filter(AgeAdjustedRate>mean(AgeAdjustedRate))%>%#States whose lung cancer rates are above the national mean
+  arrange(desc(AgeAdjustedRate)) #Arranging filtered cancer rates, descending
+  
+#First three summaries are to get an idea as to the variable averages of states whose means are above the average in each respective variable.
+data_final %>% filter(AgeAdjustedRate>mean(AgeAdjustedRate))%>%#States whose lung cancer rates are above the national mean
+  arrange(desc(AgeAdjustedRate))%>% #Arranging filtered cancer rates, descending
+  summarize('Mean'=mean(AgeAdjustedRate),#Mean of lung cancer rates in filtered states
+            'Percapita'=mean(Percapita), #Mean of percapita CO2 emissions in filtered states
+            'StateTotal'=mean(StateTotal))  #Mean of state total CO2 emissions in filtered states
+
+data_final%>% filter(Percapita>mean(Percapita))%>%#States whose per capita CO2 emissions are above the national mean)
+  arrange(desc(Percapita))%>% #Arranging filtered cancer rates, descending
+  summarize(Mean=mean(AgeAdjustedRate),#Mean of lung cancer rates in filtered states
+            Percapita=mean(Percapita), #Mean of percapita CO2 emissions in filtered states
+            StateTotal=mean(StateTotal))  #Mean of state total CO2 emissions in filtered states
+
+data_final%>% filter(StateTotal>mean(StateTotal))%>%#States whose per capita CO2 emissions are above the national mean)
+  arrange(desc(StateTotal))%>% #Arranging filtered cancer rates, descending
+  summarize(Mean=mean(AgeAdjustedRate),#Mean of lung cancer rates in filtered states
+            Percapita=mean(Percapita), #Mean of percapita CO2 emissions in filtered states
+            StateTotal=mean(StateTotal))  #Mean of state total CO2 emissions in filtered states
+
+#Summarize each of the three important numeric variables (lung cancer rates, per capita CO2 emissions, state total CO2 emissions), grouped by region
+data_final%>%group_by(Region)%>%summarize(mean(Percapita),mean(AgeAdjustedRate),mean(StateTotal))
+
+
+#Creating bins for Percapita CO2 emissions
+tags<-c('0-10','10-20','20-30','30-40','40-50','50-60','60-70','70-80','80-90','90-100','100-110')
+data_final %>% mutate(tag = case_when(
+    Percapita < 10 ~ tags[1],
+    Percapita >= 10 & Percapita < 20 ~ tags[2],
+    Percapita >= 20 & Percapita < 30 ~ tags[3],
+    Percapita >= 30 & Percapita < 40 ~ tags[4],
+    Percapita >= 40 & Percapita < 50 ~ tags[5],
+    Percapita >= 50 & Percapita < 60 ~ tags[6],
+    Percapita >= 60 & Percapita < 70 ~ tags[7],
+    Percapita >= 70 & Percapita < 80 ~ tags[8],
+    Percapita >= 80 & Percapita < 90 ~ tags[9],
+    Percapita >= 90 & Percapita < 100 ~ tags[10],
+    Percapita >= 100 & Percapita < 110 ~ tags[11])) -> data_final
+
+data_final %>% group_by(tag)%>% summarize(mean(AgeAdjustedRate))
+```
+Overall, the states that have the highest rates of Lung Cancer are in the South, Midwest, and Northeast. However, the states whose Lung Cancer rates are above the national mean (with a respective mean of 66 people per 100,000 diagnosed) had a mean of 19.49 metric tons of CO2 emissions, compared to states whose per capita CO2 emissions were above the national average, which had an average of 60 people per 100,000 diagnosed. Once splitting up the Percapita variable into bins of 10 metric tons, the mean rate of lung cancer didn't seem to follow any sort of trend from the summary table alone.
+
+
+#### 4. Visualizing (30 pts)
+```{r}
+data_final%>%ggplot(aes(x=Percapita,y=AgeAdjustedRate,color=Region))+
+  geom_point(size=3)+
+  ggtitle("State Lung Cancer Rate by CO2 Emissions Per Capita")+
+  ylab('Lung Cancer Incidence Rate (Per 100,000 People)')+
+  xlab('Per Capita CO2 Emissions (Metric Tons of CO2)')+
+  theme_linedraw()+
+  scale_color_brewer(palette='Dark2')+
+  scale_x_continuous(breaks=c(20,40,60,80,100))
+```
+
+The State Lung Cancer per Capita rate seems to not have any sort of correlation between the two variables. States in the West had on average the lowest lung cancer rates in the country, however they also had some of the highest per capita CO2 emissions in the country. Only one midwest state had CO2 emissions that exceeded the rest, and oddly enough was one of the lowest lung cancer states in the region. States in the midwest, South, and Northeast had overall and mostly uniformly high lung cancer rates, despite per capita CO2 emissions that were around the mean.
+
+```{r}
+data_final %>% ggplot(mapping = aes(x=tag,fill=Region))+
+  geom_bar(aes(y=AgeAdjustedRate),position='dodge',stat="summary",fun.y="mean")+
+  ggtitle("State Lung Cancer Rate by CO2 Emissions Per Capita Ranges")+
+  ylab('Lung Cancer Incidence Rate (Per 100,000 People)')+
+  xlab('Per Capita CO2 Emission Ranges (Metric Tons of CO2)')
+```
+    
+Note: The axis bins are out of order in the plot. It's also important to note that not the same amount of states were present in each bin, as the higher per capita CO2 emission bins were mainly made up of a few states, if not just a single state. However, from the info in the plot, states in the West region were overall low in lung cancer rates despite having some high per capita CO2 emissions. The Midwest and Northeast, despite having overall much higher lung cancer rates than the West, have a lot of per capita CO2 emission overlap in bins. However, just as in the previous plot, there wasn't any clear trend establishing a connection between per capita CO2 emissions and lung cancer rates.
+
+
+#### 5. Dimensionality Reduction (20 pts) 
+```{r}
+# PCA for AgeAdjustedRate (Lung Cancer Occurance Rate) and Percapita (per capita CO2 emissions per state)
+data_final %>% select_if(is.numeric) %>% scale %>% cov %>% round(2)
+data_final %>% select_if(is.numeric) -> data_finalN #Selecting for numeric variables
+data_finalN = data.frame(scale(data_finalN)) #Scaling data
+pc1=ggplot(data_finalN, aes(x = Percapita, y = AgeAdjustedRate))+geom_point()+coord_fixed()#Plotting scaled data
+var(data_finalN$Percapita)+var(data_finalN$AgeAdjustedRate) #Total variance between variables
+var(data_finalN$Percapita) #Just variance along x-axis
+
+#Adding linear regression line to scaled plot
+reg1 = lm(AgeAdjustedRate ~ Percapita, data = data_finalN) #linear regression
+a1 = reg1$coefficients[1] # intercept
+b1 = reg1$coefficients[2] # slope
+pline1 = pc1 + geom_abline(intercept = a1, slope = b1,
+    col = "blue", lwd = 1.5)
+pline1 + geom_segment(aes(xend = Percapita, yend = reg1$fitted),
+    lty=2)+
+  geom_point(y=reg1$fitted.values,size = 2, shape = 16,color="green")+coord_fixed()
+
+#Rotated linear regression to horizontal axis
+data_finalN%>%mutate(fit=reg1$fitted.values)%>%select(AgeAdjustedRate,Percapita,fit)%>%
+  mutate(dist=ifelse(Percapita<0,-sqrt(Percapita^2+fit^2),sqrt(Percapita^2+fit^2)))%>%
+  ggplot(aes(x = dist, y = 0)) +geom_abline(intercept = 0, slope = 0,
+    col = "blue", lwd = 1.5)+
+  geom_point(color="green",size=3)+theme(axis.text.y=element_blank(),axis.title.y=element_blank())+coord_fixed()
+
+var(data_finalN$Percapita)+var(reg1$fitted.values)#Variance of fitted values with scaled data
+
+#Plotted rotated linear regression
+data_finalN%>%mutate(fit=reg1$fitted.values)%>%select(AgeAdjustedRate,Percapita,fit)%>%
+  mutate(dist=ifelse(Percapita<0,-sqrt(Percapita^2+fit^2),sqrt(Percapita^2+fit^2)))%>%
+  ggplot(aes(x = Percapita, y = 0)) +geom_abline(intercept = 0, slope = 0,
+    col = "blue", alpha=.8, lwd = 1.5)+
+  geom_point(col="orange",size=3,alpha=.8)+geom_point(aes(x=dist),color="green",size=3,alpha=.8)
+
+#Finding the line that maximizes variance between points
+xy = cbind(data_finalN$AgeAdjustedRate, data_finalN$Percapita)
+svda = svd(xy)
+pc = xy %*% svda$v[, 1] %*% t(svda$v[, 1])
+bp = svda$v[2, 1] / svda$v[1, 1]
+ap = mean(pc[, 2]) - bp * mean(pc[, 1])
+pc1 + geom_segment(xend = pc[, 1], yend = pc[, 2]) +
+  geom_abline(intercept = ap, slope = bp, col = "blue", lwd = 1.5)+coord_fixed()+
+  geom_point(aes(x=pc[,1],y=pc[,2]),color="purple",size=3)
+
+#Rotated line that maximizes variance between points
+data_finalN%>%
+  mutate(dist1=ifelse(pc[,1]<0,-sqrt(pc[,1]^2+pc[,2]^2),sqrt(pc[,1]^2+pc[,2]^2)))%>%
+  ggplot(aes(x = dist1, y = 0)) +geom_abline(intercept = 0, slope = 0,
+    col = "blue", lwd = 1.5)+geom_point(color="purple",size=3)+theme(axis.text.y=element_blank(),axis.title=element_blank())+coord_fixed()
+
+#Variance between PC1 and PC2
+var(pc[,1])+var(pc[,2])
+
+#Comparing residuals between two lines
+pline1 + geom_segment(aes(xend = Percapita, yend = reg1$fitted),lty=2)+
+  geom_point(y=reg1$fitted.values, shape = 16,color="green",size=3)+coord_fixed()+
+  geom_segment(xend = pc[, 1], yend = pc[, 2]) +
+  geom_abline(intercept = ap, slope = bp, col = "blue", lwd = 1.5)+
+  geom_point(aes(x=pc[,1],y=pc[,2]),color="purple",size=3)
+
+#Two residual plot lines on top of each other
+data_finalN%>%mutate(fit=reg1$fitted.values)%>%
+  mutate(dist1=ifelse(Percapita<0,-sqrt(Percapita^2+fit^2),sqrt(Percapita^2+fit^2)))%>%
+  mutate(dist2=ifelse(pc[,1]<0,-sqrt(pc[,1]^2+pc[,2]^2),sqrt(pc[,1]^2+pc[,2]^2)))%>%
+  ggplot()+geom_abline(intercept = 0, slope = 0,col = "blue", lwd = 1.5)+
+  geom_point(aes(x = dist1, y = 0), color="green",size=3,alpha=.7)+
+  geom_point(aes(x = dist2, y = 0), color="purple",size=3,alpha=.7)+
+  theme(axis.text.y=element_blank(),axis.title=element_blank())+coord_fixed()
+
+#PC1 and PC2 plotted
+pc1 +
+  geom_vline(xintercept = 0,lty=2)+
+  geom_hline(yintercept = 0,lty=2)+
+  geom_abline(intercept = ap, slope = bp, col = "blue", lwd = 1)+coord_fixed()+
+  geom_abline(intercept = ap, slope = -bp, col = "red", lwd = 1)+
+  annotate(geom="text",-1,1.5,col="red",label="PC2",size=7)+
+  annotate(geom="text",1,1.5,col="blue",label="PC1",size=7)
+
+
+#Rotated PC1 and PC2 plots
+ppdf = tibble(PC1n = -svda$u[, 1] * svda$d[1],
+              PC2n = svda$u[, 2] * svda$d[2])
+ggplot(ppdf, aes(x = PC1n, y = PC2n)) + geom_point() + xlab("PC1 ")+
+    ylab("PC2")+
+  geom_abline(intercept = ap, slope = bp,lty=2)+
+  geom_abline(intercept = ap, slope = -bp,lty=2)+
+  geom_vline(xintercept = 0,lwd=1.5,col="red")+
+  geom_hline(yintercept = 0,lwd=1.5,col="blue")+coord_fixed()
+```
+Along neither of the PC1 or PC2 axis do the points tend towards. However, along one of the dashed lines the points did tend to follow, though this likely doesn't indicate any sort of trend or correlation given the results of the prior plots and summaries. The likely answer from the whole project, but confirmed by the PCA, is that CO2 emissions per capita have minimal effect on lung cancer occurance overall, even if the presence of high CO2 emissions might indicate that carcinogens are more present under some circumstances.
+

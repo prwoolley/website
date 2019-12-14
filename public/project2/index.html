@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Phillip Woolley" />
+    <meta name="description" content="A website with my Computational Biology Projects and Blogs!">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 2: Modeling, Testing, and Predicting</title>
+    <meta name="generator" content="Hugo 0.61.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project2/">Project 2: Modeling, Testing, and Predicting</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="modeling" class="section level1">
+<h1>Modeling</h1>
+<div id="instructions" class="section level2">
+<h2>Instructions</h2>
+<p>A knitted R Markdown document (as a PDF) and the raw R Markdown file (as .Rmd) should both be submitted to Canvas by 11:59pm on 11/24/2019. These two documents will be graded jointly, so they must be consistent (i.e., don’t change the R Markdown file without also updating the knitted document). Knit an html copy too, for later! In the .Rmd file for Project 2, you can copy the first code-chunk into your project .Rmd file to get better formatting. Notice that you can adjust the opts_chunk$set(…) above to set certain parameters if necessary to make the knitting cleaner (you can globally set the size of all plots, etc). I have gone ahead and set a few for you (such as disabling warnings and package-loading messges when knitting)!</p>
+<p>Like before, I envision your written text forming something of a narrative structure around your code/output. All results presented must have corresponding code. Any answers/results/plots etc. given without the corresponding R code that generated the result will not be graded. Furthermore, all code contained in your final project document should work properly. Please do not include any extraneous code or code which produces error messages. (Code which produces warnings is acceptable, as long as you understand what the warnings mean).</p>
+</div>
+<div id="find-data" class="section level2">
+<h2>Find data:</h2>
+<p>Find one dataset with at least 5 variables that wish to use to build model. At least one should be categorical (with 2-5 groups) and at least two should be numeric. Ideally, one of your variables will be binary (if not, you will need to create one by discretizing a numeric, which is workable but less than ideal). You will need a minimum of 40 observations (<em>at least</em> 10 observations for every explanatory variable you have, ideally 20+ observations/variable).</p>
+<p>It is perfectly fine to use either dataset (or the merged dataset, or a subset of your variables) from Project 1. However, you could also diversify your portfolio a bit by choosing a different dataset to work with (particularly if the variables did not reveal interesting associations in Project 1). The only requirement/restriction is that you may not use data from any examples we have done in class or lab. It would be a good idea to pick more cohesive data this time around (i.e., variables that you actually thing might have a relationship you would want to test). Think more along the lines of your Biostats project.</p>
+<p>Again, you can use data from anywhere you want (see bottom for resources)! If you want a quick way to see whether a built-in (R) dataset has binary and/or character (i.e., categorical) variables, check out this list: <a href="https://vincentarelbundock.github.io/Rdatasets/datasets.html" class="uri">https://vincentarelbundock.github.io/Rdatasets/datasets.html</a>.</p>
+</div>
+<div id="guidelines-and-rubric" class="section level2">
+<h2>Guidelines and Rubric</h2>
+<ul>
+<li><strong>0. (5 pts)</strong> Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.</li>
+</ul>
+<p><em>The dataset in question explores the melanoma rates per US state in relation to the average annual temperature. It’s a stereotype in the cancer community that the northernmost states tend to trend worse for melanoma rates due to people associating UV radiation with temperature, which is why many believe that counterintuitively colder places tend to have higher rates of melanoma. The binary variable will be for states that have above the average melanoma rate and states that have below the average melanoma rate.</em></p>
+<ul>
+<li><strong>1. (15 pts)</strong> Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all doesn’t make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss assumptions and whether or not they are likely to have been met (2).</li>
+</ul>
+<pre class="r"><code>library(tidyr)
+library(ggplot2)
+library(dplyr)
+melanoma_rates &lt;- read.csv(&quot;melanoma_rates.csv&quot;) #Reading CSV
+melanoma_rates &lt;- melanoma_rates%&gt;%mutate(rate_bi = if_else(AgeAdjustedRate&lt;mean(AgeAdjustedRate),0,1)) #Creating binary variable for melanoma rate
+
+man1&lt;-manova(cbind(AgeAdjustedRate,AverageTemp.F)~Region, data=melanoma_rates) #MANOVA test
+summary(man1) #MANOVA summary</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## Region 4 0.49979 3.8312 8 92 0.0006304 ***
+## Residuals 46
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(man1) #ANOVA summary table</code></pre>
+<pre><code>## Response AgeAdjustedRate :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Region 4 172.86 43.215 1.3054 0.2821
+## Residuals 46 1522.84 33.105
+##
+## Response AverageTemp.F :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Region 4 1694.3 423.59 9.5801 1.014e-05 ***
+## Residuals 46 2033.9 44.22
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>pairwise.t.test(melanoma_rates$AgeAdjustedRate, melanoma_rates$Region, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: melanoma_rates$AgeAdjustedRate and
+melanoma_rates$Region
+##
+## MW NE SE SW
+## NE 0.659 - - -
+## SE 0.136 0.059 - -
+## SW 0.349 0.228 0.981 -
+## W 0.975 0.688 0.137 0.343
+##
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(melanoma_rates$AverageTemp.F, melanoma_rates$Region, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: melanoma_rates$AverageTemp.F and
+melanoma_rates$Region
+##
+## MW NE SE SW
+## NE 0.8700 - - -
+## SE 3.4e-05 8.4e-05 - -
+## SW 0.0025 0.0036 0.6855 -
+## W 0.9825 0.8558 4.5e-05 0.0026
+##
+## P value adjustment method: none</code></pre>
+<p><em>Two tests were performed, so the probability of performing a type I error is 1-(0.95)^2, or 0.0975. The Bonferroni correction changes the a’ value to 0.05/2, or 0.025. The p-value from the MANOVA test was significant (&lt;0.025), so a univariate ANOVA was run. Based on the p-value yielded from the ANOVA test, the region of the US (which roughly translates to variables such as climate, temperature, sun exposure), doesn’t impact the melanoma rates, with a p-value of 0.282. However, the region of the US did have a stastically significant interaction with Temperature, with a p-value of &lt;0.025. Based on the post-hoc t-test between region and melanoma rates, none of the regions are actually significantly statistically different from one another, with the smallest p-value yielded being 0.059, which is well above the threshold value of 0.025. However, based on the post-hoc t-test between region and temperature, many of the regions had statistically significant differences in temperature.</em></p>
+<ul>
+<li><strong>2. (10 pts)</strong> Perform some kind of randomization test on your data (that makes sense). This can be anything you want! State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).</li>
+</ul>
+<pre class="r"><code>random_dist&lt;-vector()
+for(i in 1:5000){
+melanoma_rates2&lt;-data.frame(AverageTemp.F=sample(melanoma_rates$AverageTemp.F),rate=melanoma_rates$rate_bi)
+random_dist[i]&lt;-mean(melanoma_rates2[melanoma_rates2$rate==1,]$AverageTemp.F)-
+ mean(melanoma_rates2[melanoma_rates2$rate==0,]$AverageTemp.F)}
+
+melanoma_rates %&gt;% group_by(rate_bi) %&gt;% summarize(mean_temp = mean(AverageTemp.F)) %&gt;% summarize(diff(mean_temp))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `diff(mean_temp)`
+##               &lt;dbl&gt;
+## 1             0.631</code></pre>
+<pre class="r"><code>mean(random_dist&gt;0.6314815)*2</code></pre>
+<pre><code>## [1] 0.7916</code></pre>
+<pre class="r"><code>{hist(random_dist,main=&quot;&quot;, ylab=&quot;&quot;): abline(v = 0.6314815, col = &quot;red&quot;)}</code></pre>
+<pre><code>## Error in hist(random_dist, main = &quot;&quot;, ylab = &quot;&quot;):abline(v = 0.6314815, : argument of length 0</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-2-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><em>Null hypothesis: binary rate of melanoma is not affected by average annual temperature of the area. Alternate hypothesis: binary rate of melanoma is not affected by average annual temperature of the area. Based on the placement of the line in the histogram, the null hypothesis was failed to be rejected, meaning that the temperature of the region has no significant effect on the binary rate of melanoma.</em></p>
+<ul>
+<li><p><strong>3. (35 pts)</strong> Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.</p>
+<ul>
+<li>Interpret the coefficient estimates (do not discuss significance) (10)</li>
+<li>Plot the regression using <code>ggplot()</code>. If your interaction is numeric by numeric, refer to code near the end of WS15 to make the plot. If you have 3 or more predictors, just chose two to plot for convenience. (7)</li>
+<li>Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test (3)</li>
+<li>Regardless, recompute regression results with robust standard errors via <code>coeftest(..., vcov=vcovHC(...))</code>. Discuss significance of results, including any changes from before/after robust SEs if applicable. (7)</li>
+<li>What proportion of the variation in the outcome does your model explain? (3)</li>
+</ul></li>
+</ul>
+<pre class="r"><code>fit1&lt;-lm(AgeAdjustedRate ~ AverageTemp.F * Population, data=melanoma_rates)
+summary(fit1)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = AgeAdjustedRate ~ AverageTemp.F *
+Population, data = melanoma_rates)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -14.4732 -3.3605 0.5495 3.5312 16.8272
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 2.945e+01 6.444e+00 4.570 3.54e-05 ***
+## AverageTemp.F -9.277e-02 1.232e-01 -0.753 0.455
+## Population -3.827e-07 8.457e-07 -0.453 0.653
+## AverageTemp.F:Population 4.042e-09 1.440e-08 0.281 0.780
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 5.821 on 47 degrees of freedom
+## Multiple R-squared: 0.06077, Adjusted R-squared:
+0.0008196
+## F-statistic: 1.014 on 3 and 47 DF, p-value: 0.3951</code></pre>
+<pre class="r"><code>library(lmtest)
+library(sandwich)
+
+library(interactions)
+melanoma_rates$AgeAdjustedRate_c &lt;- melanoma_rates$AgeAdjustedRate - mean(melanoma_rates$AgeAdjustedRate, na.rm = T)
+melanoma_rates$AverageTemp.F_c &lt;- melanoma_rates$AverageTemp.F - mean(melanoma_rates$AverageTemp.F, na.rm = T)
+melanoma_rates$Population_c &lt;- melanoma_rates$Population - mean(melanoma_rates$Population, na.rm = T)
+fit1_c &lt;- lm(AgeAdjustedRate_c ~ AverageTemp.F_c*Population_c, data = melanoma_rates,)
+interact_plot(fit1_c, AverageTemp.F_c, Population_c, data=melanoma_rates)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>coeftest(fit1)[,1:2] </code></pre>
+<pre><code>##                               Estimate   Std. Error
+## (Intercept)               2.944836e+01 6.443761e+00
+## AverageTemp.F            -9.277207e-02 1.232071e-01
+## Population               -3.826594e-07 8.456496e-07
+## AverageTemp.F:Population  4.042382e-09 1.440291e-08</code></pre>
+<pre class="r"><code>coeftest(fit1, vcov=vcovHC(fit1))[,1:2]</code></pre>
+<pre><code>##                               Estimate   Std. Error
+## (Intercept)               2.944836e+01 1.141898e+01
+## AverageTemp.F            -9.277207e-02 2.098966e-01
+## Population               -3.826594e-07 1.102760e-06
+## AverageTemp.F:Population  4.042382e-09 1.949191e-08</code></pre>
+<pre class="r"><code>summary(fit1)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = AgeAdjustedRate ~ AverageTemp.F *
+Population, data = melanoma_rates)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -14.4732 -3.3605 0.5495 3.5312 16.8272
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 2.945e+01 6.444e+00 4.570 3.54e-05 ***
+## AverageTemp.F -9.277e-02 1.232e-01 -0.753 0.455
+## Population -3.827e-07 8.457e-07 -0.453 0.653
+## AverageTemp.F:Population 4.042e-09 1.440e-08 0.281 0.780
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 5.821 on 47 degrees of freedom
+## Multiple R-squared: 0.06077, Adjusted R-squared:
+0.0008196
+## F-statistic: 1.014 on 3 and 47 DF, p-value: 0.3951</code></pre>
+<p><em>None of the linear regression model coefficients had significant results (p&gt;0.05 for all except for intercept). Based on the interaction plot, heteroskedasticity is present, with the SD higher on one end than the other. There was no change in significance between before/after robust standard errors. With a multiple R-squared value of 0.0607, 0.0607 proportion of variance in the outcome is explained by the model, which is incredibly low.</em></p>
+<ul>
+<li><strong>4. (5 pts)</strong> Rerun same regression model (with interaction), but this time compute bootstrapped standard errors. Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)</li>
+</ul>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, {
+ boot_dat&lt;-boot_dat&lt;-melanoma_rates[sample(nrow(melanoma_rates),replace=TRUE),]
+ fit1_bootstrap &lt;- lm(AgeAdjustedRate_c ~ AverageTemp.F_c*Population_c, data = boot_dat,)
+ coef(fit1_bootstrap)
+})
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd) #standard error</code></pre>
+<pre><code>## (Intercept) AverageTemp.F_c Population_c
+AverageTemp.F_c:Population_c
+## 1 0.7296743 0.1120221 1.505971e-07 1.829548e-08</code></pre>
+<p><em>The standard error and estimates were roughly the same as before, with no change in significance. The bootstrapped standard errors did not impact the linear regression model</em></p>
+<ul>
+<li><p><strong>5. (40 pts)</strong> Perform a logistic regression predicting a binary categorical variable (if you don’t have one, make/get one) from at least two explanatory variables (interaction not necessary).</p>
+<ul>
+<li>Interpret coefficient estimates in context (10)</li>
+<li>Report a confusion matrix for your logistic regression (2)</li>
+<li>Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), and Recall (PPV) of your model (5)</li>
+<li>Using ggplot, plot density of log-odds (logit) by your binary outcome variable (3)</li>
+<li>Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret (10)</li>
+<li>Perform 10-fold (or repeated random sub-sampling) CV and report average out-of-sample Accuracy, Sensitivity, and Recall (10)</li>
+</ul></li>
+</ul>
+<pre class="r"><code>#odds&lt;-function(p)p/(1-p)
+#p&lt;-seq(0,1,by=.1)
+#cbind(p, odds=odds(p))%&gt;%round(4)
+#logit&lt;-function(p)log(odds(p))
+
+#fit2&lt;-glm(rate_bi~AverageTemp.F+Population,data=melanoma_rates,family=binomial(link=&quot;logit&quot;))#Logistic regression fit
+#coeftest(fit2)#Coefficients for logistic regression fit
+#melanoma_rates$prob&lt;-predict(fit2, type = &quot;response&quot;) #Adding probability binary variable
+#table(predict=as.numeric(melanoma_rates$prob&gt;.5),truth=melanoma_rates$rate_bi)%&gt;%addmargins #Confusion Matrix
+
+#melanoma_rates$logit&lt;-predict(fit2)
+
+
+#Logit Plot
+#ggplot(melanoma_rates)+geom_density(aes(logit,fill=as.factor(rate_bi)))
+
+
+#library(plotROC)
+#ROC Plot
+#ROCplot&lt;-ggplot(melanoma_rates)+geom_roc(aes(d=rate_bi,m=prob), n.cuts=0)+
+ #geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+#ROCplot
+#calc_auc(ROCplot)
+
+
+#class_diag&lt;-function(probs,truth){
+  
+  #tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+  #acc=sum(diag(tab))/sum(tab)
+  #sens=tab[2,2]/colSums(tab)[2]
+  #spec=tab[1,1]/colSums(tab)[1]
+  #ppv=tab[2,2]/rowSums(tab)[2]
+
+  #if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  #ord&lt;-order(probs, decreasing=TRUE)
+  #probs &lt;- probs[ord]; truth &lt;- truth[ord]
+  
+  #TPR=cumsum(truth)/max(1,sum(truth)) 
+  #FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  #dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+  #TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  
+  #n &lt;- length(TPR)
+  #auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  #data.frame(acc,sens,spec,ppv,auc)
+#}
+
+#class_diag(melanoma_rates$prob,melanoma_rates$rate_bi) #AUC
+
+#set.seed(1234)
+#k=10
+#data1&lt;-melanoma_rates[sample(nrow(melanoma_rates)),] #put dataset in random order
+#folds&lt;-cut(seq(1:nrow(melanoma_rates)),breaks=k,labels=F) #create folds
+
+#diags&lt;-NULL
+#for(i in 1:k){ # FOR EACH OF 10 FOLDS
+#train&lt;-data1[folds!=i,] #CREATE TRAINING SET
+#test&lt;-data1[folds==i,] #CREATE TESTING SET
+#truth&lt;-test$rate_bi
+
+#fit3&lt;- glm(rate_bi~AverageTemp.F+Population,data=train,family=&#39;binomial&#39;)
+#probs1&lt;- predict(fit3,newdata=test, type=&#39;response&#39;)
+
+#diags&lt;-rbind(diags,class_diag(probs1,truth)) 
+#}
+#apply(diags,2,mean) #AVERAGE THE DIAGNOSTICS ACROSS THE 10 FOLDS</code></pre>
+<p><em>None of the coefficients had significant values (p&gt;0.05 for all). Accuracy of (9+21)/51 = 0.588, sensitivity (TPR) of 0.583, specificity (TNR) of 0.600, and recall (PPV) of 0.778. None of these values are particularly high, so the model isn’t very strong at predicting the binary melanoma rate from the temperature and variables. Additionally, the AUC value is 0.574, which is close to 0.5 indicating that the logistic regression model is a poor predictor of melanoma rates. Similarly, the 10 fold cross validation yielded an AUC value of 0.553, with an accuracy of 0.530, a sensitivity of 0.750, a specificity of 0.358, and a recall of 0.578.</em></p>
+<ul>
+<li><strong>6. (10 pts)</strong> Choose one variable you want to predict (can be one you used from before; either binary or continuous) and run a LASSO regression inputting all the rest of your variables as predictors. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., <code>lambda.1se</code>). Discuss which variables are retained. Perform 10-fold CV using this model: if response in binary, compare model’s out-of-sample accuracy to that of your logistic regression in part 5; if response is numeric, compare the residual standard error (at the bottom of the summary output, aka RMSE): lower is better fit!</li>
+</ul>
+<pre class="r"><code>#fit4&lt;-glm(rate_bi~AverageTemp.F+Population+Region+CaseCount, data=melanoma_rates,family=binomial(link=&quot;logit&quot;))
+
+#library(glmnet)
+#x&lt;-model.matrix(fit4)[,-1]
+#y&lt;-as.matrix(melanoma_rates$rate_bi)
+#cv&lt;-cv.glmnet(x,y,family=&#39;binomial&#39;)
+#lasso1&lt;-glmnet(x,y,family=&quot;binomial&quot;,lambda=cv$lambda.1se)
+#coef(lasso1)
+#pred &lt;- predict(lasso1,type=&#39;response&#39;,x)
+#table(as.numeric(pred&gt;0.5),y)%&gt;%addmargins
+
+
+#set.seed(1234)
+#k=10
+#data2&lt;-melanoma_rates[sample(nrow(melanoma_rates)),] #put dataset in random order
+#folds&lt;-cut(seq(1:nrow(melanoma_rates)),breaks=k,labels=F) #create folds
+
+#diags&lt;-NULL
+#for(i in 1:k){ # FOR EACH OF 10 FOLDS
+#train2&lt;-data2[folds!=i,] #CREATE TRAINING SET
+#test2&lt;-data2[folds==i,] #CREATE TESTING SET
+#truth2&lt;-test2$rate_bi
+
+#fit5&lt;- glm(rate_bi~Region,Population,data=train2,family=&#39;binomial&#39;)
+#probs2&lt;- predict(fit2,newdata=test2, type=&#39;response&#39;)
+
+#diags&lt;-rbind(diags,class_diag(probs2,truth2)) 
+#}
+#apply(diags,2,mean)</code></pre>
+<p><em>Only the population and region variables are retained, and not temperature. The accuracy here was 0.59, which is nearly identical to that of part 5. Additionally, the AUC is 0.594, which is also nearly identical to before. Specifying the variables which impacted the binary melanoma rate had no bearing on inproving the model :( Overall, and taking into accound the results for each section, despite the stereotype that colder regions have higher melanoma rates, the annual temperature of each state had little bearing on the melanoma rates of that given area.</em></p>
+</div>
+</div>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

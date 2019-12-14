@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Phillip Woolley" />
+    <meta name="description" content="A website with my Computational Biology Projects and Blogs!">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 1: Exploratory Data Analysis</title>
+    <meta name="generator" content="Hugo 0.61.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project1/">Project 1: Exploratory Data Analysis</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="phillip-woolley-prw474" class="section level3">
+<h3>Phillip Woolley, prw474</h3>
+<div id="introduction-4-pts" class="section level4">
+<h4>0. Introduction (4 pts)</h4>
+<p>The three datasets chosen involve lung cancer diagnosis rates and CO2 emissions per state, for both statewide and per capita emissions. One aspect about modern living is the amount of carcinogens that we regularly put out into the environment, including emissions from factories or runoff from all manner of processes. In particular, I was interested in CO2 emissions, and wondering if CO2 emissions have any bearing on lung cancer rates. I expect that higher CO2 rates will have an effect on lung cancer but not a direct one, as despite the fact that CO2 isn’t necessarily the most carcinogenic compound, high CO2 rates might correspond to higher development or industry in any given state, which more broadly impacts lung cancer rates. The datasets came from either the EPA (for CO2 emissions) or the CDC (cancer rates).</p>
+</div>
+<div id="tidying-rearranging-widelong-8-pts" class="section level4">
+<h4>1. Tidying: Rearranging Wide/Long (8 pts)</h4>
+<pre class="r"><code>library(tidyr)
+library(ggplot2)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>lung_cancer_rate &lt;- read.csv(&quot;lung_cancer_rate.csv&quot;) #Reading CSVs
+state_percapita_carbon &lt;- read.csv(&quot;state_percapita_carbon.csv&quot;)
+state_total_carbon &lt;- read.csv(&quot;state_total_carbon.csv&quot;)
+
+lung_cancer_rate%&gt;%na.omit()-&gt; lung_cancer_rate #removing last few rows with all NAs
+state_percapita_carbon%&gt;%na.omit() -&gt; state_percapita_carbon #removing last few rows with all NAs
+state_percapita_carbon&lt;-subset(state_percapita_carbon,select=-c(2:17,19:20)) #removing all years but 2016, the year in common
+state_total_carbon&lt;-subset(state_total_carbon,select=-c(2:12,14:16))#removing last column with all NAs and all years but 2016
+state_total_carbon%&gt;% na.omit() -&gt; state_total_carbon #removing last few rows with all NAs
+#Datasets are already Tidy (just need to remove one observation in the carbon emission datasets), so the next line is untidying, then retidying the lung cancer dataset.
+lung_cancer_rate%&gt;% pivot_wider(names_from=&#39;Region&#39;,values_from=&#39;AgeAdjustedRate&#39;) %&gt;% pivot_longer(c(&quot;West&quot;,&quot;Midwest&quot;,&quot;South&quot;,&quot;Northeast&quot;),names_to = &#39;Region&#39;,values_to = &#39;AgeAdjustedRate&#39;) %&gt;% na.omit() -&gt; lung_cancer_rate</code></pre>
+</div>
+<div id="joiningmerging-8-pts" class="section level4">
+<h4>2. Joining/Merging (8 pts)</h4>
+<ul>
+<li>Join your datasets into one using a <code>dplyr</code> join function</li>
+<li>If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize</li>
+<li>Discuss the process in words, including why you chose the join you did</li>
+<li>Discuss which cases were dropped, if any, and potential problems with this</li>
+</ul>
+<pre class="r"><code>lung_cancer_rate%&gt;%full_join(state_percapita_carbon,by=c(&#39;Area&#39;=&#39;State&#39;))-&gt;lung_percapita #saving temporary fulljoin from 2 of the three datasets</code></pre>
+<pre><code>## Warning: Column `Area`/`State` joining factors with different levels, coercing
+## to character vector</code></pre>
+<pre class="r"><code>lung_percapita%&gt;%rename(Percapita=X2016)%&gt;% #renaming X2016 into Percapita (for percapita CO2 emissions)
+  full_join(state_total_carbon,by=c(&#39;Area&#39;=&#39;State&#39;))%&gt;% #fulljoining third dataset
+  rename(StateTotal=X2016)%&gt;% #renaming X2016 into StateTotal (for state total CO2 emissions)
+  na.omit()-&gt;data_final</code></pre>
+<pre><code>## Warning: Column `Area`/`State` joining character vector and factor, coercing
+## into character vector</code></pre>
+<pre class="r"><code>#Need to convert StateTotal CO2 emissions variable into numeric variable
+data_final$StateTotal &lt;- as.numeric(as.character(data_final$StateTotal))</code></pre>
+</div>
+<div id="wrangling-40-pts" class="section level4">
+<h4>3. Wrangling (40 pts)</h4>
+<pre class="r"><code>#Table displaying the states and stats for states whose lung cancer rates are above the national average
+data_final %&gt;% filter(AgeAdjustedRate&gt;mean(AgeAdjustedRate))%&gt;%#States whose lung cancer rates are above the national mean
+  arrange(desc(AgeAdjustedRate)) #Arranging filtered cancer rates, descending</code></pre>
+<pre><code>## # A tibble: 26 x 10
+##    Area  CancerType  Year Sex   CaseCount Population Region AgeAdjustedRate
+##    &lt;chr&gt; &lt;fct&gt;      &lt;int&gt; &lt;fct&gt;     &lt;int&gt;      &lt;int&gt; &lt;chr&gt;            &lt;dbl&gt;
+##  1 Kent… Lung and …  2016 Male…      4761    4436113 South             86.8
+##  2 Arka… Lung and …  2016 Male…      2884    2988231 South             76.5
+##  3 West… Lung and …  2016 Male…      1993    1828637 North…            75.4
+##  4 Miss… Lung and …  2016 Male…      2684    2985415 South             75  
+##  5 Maine Lung and …  2016 Male…      1453    1330232 North…            73.5
+##  6 Tenn… Lung and …  2016 Male…      5900    6649404 South             70.9
+##  7 Indi… Lung and …  2016 Male…      5567    6634007 Midwe…            70.4
+##  8 Rhod… Lung and …  2016 Male…       937    1057566 North…            68.5
+##  9 Miss… Lung and …  2016 Male…      5256    6091176 Midwe…            68  
+## 10 Dela… Lung and …  2016 Male…       862     952698 North…            67.1
+## # … with 16 more rows, and 2 more variables: Percapita &lt;dbl&gt;, StateTotal &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#First three summaries are to get an idea as to the variable averages of states whose means are above the average in each respective variable.
+data_final %&gt;% filter(AgeAdjustedRate&gt;mean(AgeAdjustedRate))%&gt;%#States whose lung cancer rates are above the national mean
+  arrange(desc(AgeAdjustedRate))%&gt;% #Arranging filtered cancer rates, descending
+  summarize(&#39;Mean&#39;=mean(AgeAdjustedRate),#Mean of lung cancer rates in filtered states
+            &#39;Percapita&#39;=mean(Percapita), #Mean of percapita CO2 emissions in filtered states
+            &#39;StateTotal&#39;=mean(StateTotal))  #Mean of state total CO2 emissions in filtered states</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    Mean Percapita StateTotal
+##   &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1  66.0      19.5       99.0</code></pre>
+<pre class="r"><code>data_final%&gt;% filter(Percapita&gt;mean(Percapita))%&gt;%#States whose per capita CO2 emissions are above the national mean)
+  arrange(desc(Percapita))%&gt;% #Arranging filtered cancer rates, descending
+  summarize(Mean=mean(AgeAdjustedRate),#Mean of lung cancer rates in filtered states
+            Percapita=mean(Percapita), #Mean of percapita CO2 emissions in filtered states
+            StateTotal=mean(StateTotal))  #Mean of state total CO2 emissions in filtered states</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    Mean Percapita StateTotal
+##   &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1  60.6      36.0       119.</code></pre>
+<pre class="r"><code>data_final%&gt;% filter(StateTotal&gt;mean(StateTotal))%&gt;%#States whose per capita CO2 emissions are above the national mean)
+  arrange(desc(StateTotal))%&gt;% #Arranging filtered cancer rates, descending
+  summarize(Mean=mean(AgeAdjustedRate),#Mean of lung cancer rates in filtered states
+            Percapita=mean(Percapita), #Mean of percapita CO2 emissions in filtered states
+            StateTotal=mean(StateTotal))  #Mean of state total CO2 emissions in filtered states</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    Mean Percapita StateTotal
+##   &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1  61.6      18.1       196.</code></pre>
+<pre class="r"><code>#Summarize each of the three important numeric variables (lung cancer rates, per capita CO2 emissions, state total CO2 emissions), grouped by region
+data_final%&gt;%group_by(Region)%&gt;%summarize(mean(Percapita),mean(AgeAdjustedRate),mean(StateTotal))</code></pre>
+<pre><code>## # A tibble: 4 x 4
+##   Region    `mean(Percapita)` `mean(AgeAdjustedRate)` `mean(StateTotal)`
+##   &lt;chr&gt;                 &lt;dbl&gt;                   &lt;dbl&gt;              &lt;dbl&gt;
+## 1 Midwest                23.0                    60.1              110. 
+## 2 Northeast              14.9                    63.3               68.0
+## 3 South                  18.6                    61.8              142. 
+## 4 West                   25.5                    44.1               73.9</code></pre>
+<pre class="r"><code>#Creating bins for Percapita CO2 emissions
+tags&lt;-c(&#39;0-10&#39;,&#39;10-20&#39;,&#39;20-30&#39;,&#39;30-40&#39;,&#39;40-50&#39;,&#39;50-60&#39;,&#39;60-70&#39;,&#39;70-80&#39;,&#39;80-90&#39;,&#39;90-100&#39;,&#39;100-110&#39;)
+data_final %&gt;% mutate(tag = case_when(
+    Percapita &lt; 10 ~ tags[1],
+    Percapita &gt;= 10 &amp; Percapita &lt; 20 ~ tags[2],
+    Percapita &gt;= 20 &amp; Percapita &lt; 30 ~ tags[3],
+    Percapita &gt;= 30 &amp; Percapita &lt; 40 ~ tags[4],
+    Percapita &gt;= 40 &amp; Percapita &lt; 50 ~ tags[5],
+    Percapita &gt;= 50 &amp; Percapita &lt; 60 ~ tags[6],
+    Percapita &gt;= 60 &amp; Percapita &lt; 70 ~ tags[7],
+    Percapita &gt;= 70 &amp; Percapita &lt; 80 ~ tags[8],
+    Percapita &gt;= 80 &amp; Percapita &lt; 90 ~ tags[9],
+    Percapita &gt;= 90 &amp; Percapita &lt; 100 ~ tags[10],
+    Percapita &gt;= 100 &amp; Percapita &lt; 110 ~ tags[11])) -&gt; data_final
+
+data_final %&gt;% group_by(tag)%&gt;% summarize(mean(AgeAdjustedRate))</code></pre>
+<pre><code>## # A tibble: 7 x 2
+##   tag     `mean(AgeAdjustedRate)`
+##   &lt;chr&gt;                     &lt;dbl&gt;
+## 1 0-10                       53.6
+## 2 10-20                      56.8
+## 3 100-110                    44.7
+## 4 20-30                      61.5
+## 5 40-50                      59.4
+## 6 50-60                      75.4
+## 7 70-80                      53.6</code></pre>
+<p>Overall, the states that have the highest rates of Lung Cancer are in the South, Midwest, and Northeast. However, the states whose Lung Cancer rates are above the national mean (with a respective mean of 66 people per 100,000 diagnosed) had a mean of 19.49 metric tons of CO2 emissions, compared to states whose per capita CO2 emissions were above the national average, which had an average of 60 people per 100,000 diagnosed. Once splitting up the Percapita variable into bins of 10 metric tons, the mean rate of lung cancer didn’t seem to follow any sort of trend from the summary table alone.</p>
+</div>
+<div id="visualizing-30-pts" class="section level4">
+<h4>4. Visualizing (30 pts)</h4>
+<pre class="r"><code>data_final%&gt;%ggplot(aes(x=Percapita,y=AgeAdjustedRate,color=Region))+
+  geom_point(size=3)+
+  ggtitle(&quot;State Lung Cancer Rate by CO2 Emissions Per Capita&quot;)+
+  ylab(&#39;Lung Cancer Incidence Rate (Per 100,000 People)&#39;)+
+  xlab(&#39;Per Capita CO2 Emissions (Metric Tons of CO2)&#39;)+
+  theme_linedraw()+
+  scale_color_brewer(palette=&#39;Dark2&#39;)+
+  scale_x_continuous(breaks=c(20,40,60,80,100))</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>The State Lung Cancer per Capita rate seems to not have any sort of correlation between the two variables. States in the West had on average the lowest lung cancer rates in the country, however they also had some of the highest per capita CO2 emissions in the country. Only one midwest state had CO2 emissions that exceeded the rest, and oddly enough was one of the lowest lung cancer states in the region. States in the midwest, South, and Northeast had overall and mostly uniformly high lung cancer rates, despite per capita CO2 emissions that were around the mean.</p>
+<pre class="r"><code>data_final %&gt;% ggplot(mapping = aes(x=tag,fill=Region))+
+  geom_bar(aes(y=AgeAdjustedRate),position=&#39;dodge&#39;,stat=&quot;summary&quot;,fun.y=&quot;mean&quot;)+
+  ggtitle(&quot;State Lung Cancer Rate by CO2 Emissions Per Capita Ranges&quot;)+
+  ylab(&#39;Lung Cancer Incidence Rate (Per 100,000 People)&#39;)+
+  xlab(&#39;Per Capita CO2 Emission Ranges (Metric Tons of CO2)&#39;)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Note: The axis bins are out of order in the plot. It’s also important to note that not the same amount of states were present in each bin, as the higher per capita CO2 emission bins were mainly made up of a few states, if not just a single state. However, from the info in the plot, states in the West region were overall low in lung cancer rates despite having some high per capita CO2 emissions. The Midwest and Northeast, despite having overall much higher lung cancer rates than the West, have a lot of per capita CO2 emission overlap in bins. However, just as in the previous plot, there wasn’t any clear trend establishing a connection between per capita CO2 emissions and lung cancer rates.</p>
+</div>
+<div id="dimensionality-reduction-20-pts" class="section level4">
+<h4>5. Dimensionality Reduction (20 pts)</h4>
+<pre class="r"><code># PCA for AgeAdjustedRate (Lung Cancer Occurance Rate) and Percapita (per capita CO2 emissions per state)
+data_final %&gt;% select_if(is.numeric) %&gt;% scale %&gt;% cov %&gt;% round(2)</code></pre>
+<pre><code>##                 Year CaseCount Population AgeAdjustedRate Percapita StateTotal
+## Year              NA        NA         NA              NA        NA         NA
+## CaseCount         NA      1.00       0.93            0.06     -0.26       0.79
+## Population        NA      0.93       1.00           -0.15     -0.24       0.84
+## AgeAdjustedRate   NA      0.06      -0.15            1.00      0.02      -0.02
+## Percapita         NA     -0.26      -0.24            0.02      1.00       0.00
+## StateTotal        NA      0.79       0.84           -0.02      0.00       1.00</code></pre>
+<pre class="r"><code>data_final %&gt;% select_if(is.numeric) -&gt; data_finalN #Selecting for numeric variables
+data_finalN = data.frame(scale(data_finalN)) #Scaling data
+pc1=ggplot(data_finalN, aes(x = Percapita, y = AgeAdjustedRate))+geom_point()+coord_fixed()#Plotting scaled data
+var(data_finalN$Percapita)+var(data_finalN$AgeAdjustedRate) #Total variance between variables</code></pre>
+<pre><code>## [1] 2</code></pre>
+<pre class="r"><code>var(data_finalN$Percapita) #Just variance along x-axis</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>#Adding linear regression line to scaled plot
+reg1 = lm(AgeAdjustedRate ~ Percapita, data = data_finalN) #linear regression
+a1 = reg1$coefficients[1] # intercept
+b1 = reg1$coefficients[2] # slope
+pline1 = pc1 + geom_abline(intercept = a1, slope = b1,
+    col = &quot;blue&quot;, lwd = 1.5)
+pline1 + geom_segment(aes(xend = Percapita, yend = reg1$fitted),
+    lty=2)+
+  geom_point(y=reg1$fitted.values,size = 2, shape = 16,color=&quot;green&quot;)+coord_fixed()</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will replace the existing one.</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>#Rotated linear regression to horizontal axis
+data_finalN%&gt;%mutate(fit=reg1$fitted.values)%&gt;%select(AgeAdjustedRate,Percapita,fit)%&gt;%
+  mutate(dist=ifelse(Percapita&lt;0,-sqrt(Percapita^2+fit^2),sqrt(Percapita^2+fit^2)))%&gt;%
+  ggplot(aes(x = dist, y = 0)) +geom_abline(intercept = 0, slope = 0,
+    col = &quot;blue&quot;, lwd = 1.5)+
+  geom_point(color=&quot;green&quot;,size=3)+theme(axis.text.y=element_blank(),axis.title.y=element_blank())+coord_fixed()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<pre class="r"><code>var(data_finalN$Percapita)+var(reg1$fitted.values)#Variance of fitted values with scaled data</code></pre>
+<pre><code>## [1] 1.000372</code></pre>
+<pre class="r"><code>#Plotted rotated linear regression
+data_finalN%&gt;%mutate(fit=reg1$fitted.values)%&gt;%select(AgeAdjustedRate,Percapita,fit)%&gt;%
+  mutate(dist=ifelse(Percapita&lt;0,-sqrt(Percapita^2+fit^2),sqrt(Percapita^2+fit^2)))%&gt;%
+  ggplot(aes(x = Percapita, y = 0)) +geom_abline(intercept = 0, slope = 0,
+    col = &quot;blue&quot;, alpha=.8, lwd = 1.5)+
+  geom_point(col=&quot;orange&quot;,size=3,alpha=.8)+geom_point(aes(x=dist),color=&quot;green&quot;,size=3,alpha=.8)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-3.png" width="672" /></p>
+<pre class="r"><code>#Finding the line that maximizes variance between points
+xy = cbind(data_finalN$AgeAdjustedRate, data_finalN$Percapita)
+svda = svd(xy)
+pc = xy %*% svda$v[, 1] %*% t(svda$v[, 1])
+bp = svda$v[2, 1] / svda$v[1, 1]
+ap = mean(pc[, 2]) - bp * mean(pc[, 1])
+pc1 + geom_segment(xend = pc[, 1], yend = pc[, 2]) +
+  geom_abline(intercept = ap, slope = bp, col = &quot;blue&quot;, lwd = 1.5)+coord_fixed()+
+  geom_point(aes(x=pc[,1],y=pc[,2]),color=&quot;purple&quot;,size=3)</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will replace the existing one.</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-4.png" width="672" /></p>
+<pre class="r"><code>#Rotated line that maximizes variance between points
+data_finalN%&gt;%
+  mutate(dist1=ifelse(pc[,1]&lt;0,-sqrt(pc[,1]^2+pc[,2]^2),sqrt(pc[,1]^2+pc[,2]^2)))%&gt;%
+  ggplot(aes(x = dist1, y = 0)) +geom_abline(intercept = 0, slope = 0,
+    col = &quot;blue&quot;, lwd = 1.5)+geom_point(color=&quot;purple&quot;,size=3)+theme(axis.text.y=element_blank(),axis.title=element_blank())+coord_fixed()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-5.png" width="672" /></p>
+<pre class="r"><code>#Variance between PC1 and PC2
+var(pc[,1])+var(pc[,2])</code></pre>
+<pre><code>## [1] 1.019288</code></pre>
+<pre class="r"><code>#Comparing residuals between two lines
+pline1 + geom_segment(aes(xend = Percapita, yend = reg1$fitted),lty=2)+
+  geom_point(y=reg1$fitted.values, shape = 16,color=&quot;green&quot;,size=3)+coord_fixed()+
+  geom_segment(xend = pc[, 1], yend = pc[, 2]) +
+  geom_abline(intercept = ap, slope = bp, col = &quot;blue&quot;, lwd = 1.5)+
+  geom_point(aes(x=pc[,1],y=pc[,2]),color=&quot;purple&quot;,size=3)</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will replace the existing one.</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-6.png" width="672" /></p>
+<pre class="r"><code>#Two residual plot lines on top of each other
+data_finalN%&gt;%mutate(fit=reg1$fitted.values)%&gt;%
+  mutate(dist1=ifelse(Percapita&lt;0,-sqrt(Percapita^2+fit^2),sqrt(Percapita^2+fit^2)))%&gt;%
+  mutate(dist2=ifelse(pc[,1]&lt;0,-sqrt(pc[,1]^2+pc[,2]^2),sqrt(pc[,1]^2+pc[,2]^2)))%&gt;%
+  ggplot()+geom_abline(intercept = 0, slope = 0,col = &quot;blue&quot;, lwd = 1.5)+
+  geom_point(aes(x = dist1, y = 0), color=&quot;green&quot;,size=3,alpha=.7)+
+  geom_point(aes(x = dist2, y = 0), color=&quot;purple&quot;,size=3,alpha=.7)+
+  theme(axis.text.y=element_blank(),axis.title=element_blank())+coord_fixed()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-7.png" width="672" /></p>
+<pre class="r"><code>#PC1 and PC2 plotted
+pc1 +
+  geom_vline(xintercept = 0,lty=2)+
+  geom_hline(yintercept = 0,lty=2)+
+  geom_abline(intercept = ap, slope = bp, col = &quot;blue&quot;, lwd = 1)+coord_fixed()+
+  geom_abline(intercept = ap, slope = -bp, col = &quot;red&quot;, lwd = 1)+
+  annotate(geom=&quot;text&quot;,-1,1.5,col=&quot;red&quot;,label=&quot;PC2&quot;,size=7)+
+  annotate(geom=&quot;text&quot;,1,1.5,col=&quot;blue&quot;,label=&quot;PC1&quot;,size=7)</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will replace the existing one.</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-8.png" width="672" /></p>
+<pre class="r"><code>#Rotated PC1 and PC2 plots
+ppdf = tibble(PC1n = -svda$u[, 1] * svda$d[1],
+              PC2n = svda$u[, 2] * svda$d[2])
+ggplot(ppdf, aes(x = PC1n, y = PC2n)) + geom_point() + xlab(&quot;PC1 &quot;)+
+    ylab(&quot;PC2&quot;)+
+  geom_abline(intercept = ap, slope = bp,lty=2)+
+  geom_abline(intercept = ap, slope = -bp,lty=2)+
+  geom_vline(xintercept = 0,lwd=1.5,col=&quot;red&quot;)+
+  geom_hline(yintercept = 0,lwd=1.5,col=&quot;blue&quot;)+coord_fixed()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-6-9.png" width="672" />
+Along neither of the PC1 or PC2 axis do the points tend towards. However, along one of the dashed lines the points did tend to follow, though this likely doesn’t indicate any sort of trend or correlation given the results of the prior plots and summaries. The likely answer from the whole project, but confirmed by the PCA, is that CO2 emissions per capita have minimal effect on lung cancer occurance overall, even if the presence of high CO2 emissions might indicate that carcinogens are more present under some circumstances.</p>
+</div>
+</div>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

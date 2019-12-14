@@ -1,0 +1,261 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS348 Fall 2019"
+date: ''
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+```
+
+# Modeling
+
+## Instructions
+
+A knitted R Markdown document (as a PDF) and the raw R Markdown file (as .Rmd) should both be submitted to Canvas by 11:59pm on 11/24/2019. These two documents will be graded jointly, so they must be consistent (i.e., don’t change the R Markdown file without also updating the knitted document). Knit an html copy too, for later! In the .Rmd file for Project 2, you can copy the first code-chunk into your project .Rmd file to get better formatting. Notice that you can adjust the opts_chunk$set(...) above to set certain parameters if necessary to make the knitting cleaner (you can globally set the size of all plots, etc). I have gone ahead and set a few for you (such as disabling warnings and package-loading messges when knitting)! 
+
+Like before, I envision your written text forming something of a narrative structure around your code/output. All results presented must have corresponding code. Any answers/results/plots etc. given without the corresponding R code that generated the result will not be graded. Furthermore, all code contained in your final project document should work properly. Please do not include any extraneous code or code which produces error messages. (Code which produces warnings is acceptable, as long as you understand what the warnings mean).
+
+## Find data:
+
+Find one dataset with at least 5 variables that wish to use to build model. At least one should be categorical (with 2-5 groups) and at least two should be numeric. Ideally, one of your variables will be binary (if not, you will need to create one by discretizing a numeric, which is workable but less than ideal). You will need a minimum of 40 observations (*at least* 10 observations for every explanatory variable you have, ideally 20+ observations/variable).
+
+It is perfectly fine to use either dataset (or the merged dataset, or a subset of your variables) from Project 1. However, you could also diversify your portfolio a bit by choosing a different dataset to work with (particularly if the variables did not reveal interesting associations in Project 1). The only requirement/restriction is that you may not use data from any examples we have done in class or lab. It would be a good idea to pick more cohesive data this time around (i.e., variables that you actually thing might have a relationship you would want to test). Think more along the lines of your Biostats project.
+
+Again, you can use data from anywhere you want (see bottom for resources)! If you want a quick way to see whether a built-in (R) dataset has binary and/or character (i.e., categorical) variables, check out this list: https://vincentarelbundock.github.io/Rdatasets/datasets.html.
+
+
+## Guidelines and Rubric
+
+- **0. (5 pts)** Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.
+
+*The dataset in question explores the melanoma rates per US state in relation to the average annual temperature. It's a stereotype in the cancer community that the northernmost states tend to trend worse for melanoma rates due to people associating UV radiation with temperature, which is why many believe that counterintuitively colder places tend to have higher rates of melanoma. The binary variable will be for states that have above the average melanoma rate and states that have below the average melanoma rate.*
+
+- **1. (15 pts)** Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all doesn't make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss assumptions and whether or not they are likely to have been met (2).
+
+```{R}
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+melanoma_rates <- read.csv("melanoma_rates.csv") #Reading CSV
+melanoma_rates <- melanoma_rates%>%mutate(rate_bi = if_else(AgeAdjustedRate<mean(AgeAdjustedRate),0,1)) #Creating binary variable for melanoma rate
+
+man1<-manova(cbind(AgeAdjustedRate,AverageTemp.F)~Region, data=melanoma_rates) #MANOVA test
+summary(man1) #MANOVA summary
+
+summary.aov(man1) #ANOVA summary table
+
+pairwise.t.test(melanoma_rates$AgeAdjustedRate, melanoma_rates$Region, p.adj = "none")
+pairwise.t.test(melanoma_rates$AverageTemp.F, melanoma_rates$Region, p.adj = "none")
+```
+
+*Two tests were performed, so the probability of performing a type I error is 1-(0.95)^2, or 0.0975. The Bonferroni correction changes the a' value to 0.05/2, or 0.025. The p-value from the MANOVA test was significant (<0.025), so a univariate ANOVA was run. Based on the p-value yielded from the ANOVA test, the region of the US (which roughly translates to variables such as climate, temperature, sun exposure), doesn't impact the melanoma rates, with a p-value of 0.282. However, the region of the US did have a stastically significant interaction with Temperature, with a p-value of <0.025. Based on the post-hoc t-test between region and melanoma rates, none of the regions are actually significantly statistically different from one another, with the smallest p-value yielded being 0.059, which is well above the threshold value of 0.025. However, based on the post-hoc t-test between region and temperature, many of the regions had statistically significant differences in temperature.*
+
+- **2. (10 pts)** Perform some kind of randomization test on your data (that makes sense). This can be anything you want! State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).
+
+```{R error=TRUE}
+random_dist<-vector()
+for(i in 1:5000){
+melanoma_rates2<-data.frame(AverageTemp.F=sample(melanoma_rates$AverageTemp.F),rate=melanoma_rates$rate_bi)
+random_dist[i]<-mean(melanoma_rates2[melanoma_rates2$rate==1,]$AverageTemp.F)-
+ mean(melanoma_rates2[melanoma_rates2$rate==0,]$AverageTemp.F)}
+
+melanoma_rates %>% group_by(rate_bi) %>% summarize(mean_temp = mean(AverageTemp.F)) %>% summarize(diff(mean_temp))
+
+mean(random_dist>0.6314815)*2
+
+
+{hist(random_dist,main="", ylab=""): abline(v = 0.6314815, col = "red")}
+```
+
+*Null hypothesis: binary rate of melanoma is not affected by average annual temperature of the area. Alternate hypothesis: binary rate of melanoma is not affected by average annual temperature of the area. Based on the placement of the line in the histogram, the null hypothesis was failed to be rejected, meaning that the temperature of the region has no significant effect on the binary rate of melanoma.*
+
+
+- **3. (35 pts)** Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.
+
+    - Interpret the coefficient estimates (do not discuss significance) (10)
+    - Plot the regression using `ggplot()`. If your interaction is numeric by numeric, refer to code near the end of WS15 to make the plot. If you have 3 or more predictors, just chose two to plot for convenience. (7)
+    - Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test (3)
+    - Regardless, recompute regression results with robust standard errors via `coeftest(..., vcov=vcovHC(...))`. Discuss significance of results, including any changes from before/after robust SEs if applicable. (7)
+    - What proportion of the variation in the outcome does your model explain? (3)
+
+    
+```{R}
+fit1<-lm(AgeAdjustedRate ~ AverageTemp.F * Population, data=melanoma_rates)
+summary(fit1)
+library(lmtest)
+library(sandwich)
+
+library(interactions)
+melanoma_rates$AgeAdjustedRate_c <- melanoma_rates$AgeAdjustedRate - mean(melanoma_rates$AgeAdjustedRate, na.rm = T)
+melanoma_rates$AverageTemp.F_c <- melanoma_rates$AverageTemp.F - mean(melanoma_rates$AverageTemp.F, na.rm = T)
+melanoma_rates$Population_c <- melanoma_rates$Population - mean(melanoma_rates$Population, na.rm = T)
+fit1_c <- lm(AgeAdjustedRate_c ~ AverageTemp.F_c*Population_c, data = melanoma_rates,)
+interact_plot(fit1_c, AverageTemp.F_c, Population_c, data=melanoma_rates)
+
+coeftest(fit1)[,1:2] 
+coeftest(fit1, vcov=vcovHC(fit1))[,1:2]
+
+summary(fit1)
+
+
+```
+
+*None of the linear regression model coefficients had significant results (p>0.05 for all except for intercept). Based on the interaction plot, heteroskedasticity is present, with the SD higher on one end than the other. There was no change in significance between before/after robust standard errors. With a multiple R-squared value of 0.0607, 0.0607 proportion of variance in the outcome is explained by the model, which is incredibly low.*
+
+- **4. (5 pts)** Rerun same regression model (with interaction), but this time compute bootstrapped standard errors. Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)
+
+```{R}
+samp_distn<-replicate(5000, {
+ boot_dat<-boot_dat<-melanoma_rates[sample(nrow(melanoma_rates),replace=TRUE),]
+ fit1_bootstrap <- lm(AgeAdjustedRate_c ~ AverageTemp.F_c*Population_c, data = boot_dat,)
+ coef(fit1_bootstrap)
+})
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd) #standard error
+
+```
+
+*The standard error and estimates were roughly the same as before, with no change in significance. The bootstrapped standard errors did not impact the linear regression model*
+
+- **5. (40 pts)** Perform a logistic regression predicting a binary categorical variable (if you don't have one, make/get one) from at least two explanatory variables (interaction not necessary). 
+
+    - Interpret coefficient estimates in context (10)
+    - Report a confusion matrix for your logistic regression (2)
+    - Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), and Recall (PPV) of your model (5)
+    - Using ggplot, plot density of log-odds (logit) by your binary outcome variable (3)
+    - Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret (10)
+    - Perform 10-fold (or repeated random sub-sampling) CV and report average out-of-sample Accuracy, Sensitivity, and Recall (10)
+    
+```{R} 
+#odds<-function(p)p/(1-p)
+#p<-seq(0,1,by=.1)
+#cbind(p, odds=odds(p))%>%round(4)
+#logit<-function(p)log(odds(p))
+
+#fit2<-glm(rate_bi~AverageTemp.F+Population,data=melanoma_rates,family=binomial(link="logit"))#Logistic regression fit
+#coeftest(fit2)#Coefficients for logistic regression fit
+#melanoma_rates$prob<-predict(fit2, type = "response") #Adding probability binary variable
+#table(predict=as.numeric(melanoma_rates$prob>.5),truth=melanoma_rates$rate_bi)%>%addmargins #Confusion Matrix
+
+#melanoma_rates$logit<-predict(fit2)
+
+
+#Logit Plot
+#ggplot(melanoma_rates)+geom_density(aes(logit,fill=as.factor(rate_bi)))
+
+
+#library(plotROC)
+#ROC Plot
+#ROCplot<-ggplot(melanoma_rates)+geom_roc(aes(d=rate_bi,m=prob), n.cuts=0)+
+ #geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+#ROCplot
+#calc_auc(ROCplot)
+
+
+#class_diag<-function(probs,truth){
+  
+  #tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  #acc=sum(diag(tab))/sum(tab)
+  #sens=tab[2,2]/colSums(tab)[2]
+  #spec=tab[1,1]/colSums(tab)[1]
+  #ppv=tab[2,2]/rowSums(tab)[2]
+
+  #if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  #ord<-order(probs, decreasing=TRUE)
+  #probs <- probs[ord]; truth <- truth[ord]
+  
+  #TPR=cumsum(truth)/max(1,sum(truth)) 
+  #FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  #dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  #TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  #n <- length(TPR)
+  #auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  #data.frame(acc,sens,spec,ppv,auc)
+#}
+
+#class_diag(melanoma_rates$prob,melanoma_rates$rate_bi) #AUC
+
+#set.seed(1234)
+#k=10
+#data1<-melanoma_rates[sample(nrow(melanoma_rates)),] #put dataset in random order
+#folds<-cut(seq(1:nrow(melanoma_rates)),breaks=k,labels=F) #create folds
+
+#diags<-NULL
+#for(i in 1:k){ # FOR EACH OF 10 FOLDS
+#train<-data1[folds!=i,] #CREATE TRAINING SET
+#test<-data1[folds==i,] #CREATE TESTING SET
+#truth<-test$rate_bi
+
+#fit3<- glm(rate_bi~AverageTemp.F+Population,data=train,family='binomial')
+#probs1<- predict(fit3,newdata=test, type='response')
+
+#diags<-rbind(diags,class_diag(probs1,truth)) 
+#}
+#apply(diags,2,mean) #AVERAGE THE DIAGNOSTICS ACROSS THE 10 FOLDS
+```
+
+*None of the coefficients had significant values (p>0.05 for all). Accuracy of (9+21)/51 = 0.588, sensitivity (TPR) of 0.583, specificity (TNR) of 0.600, and recall (PPV) of 0.778. None of these values are particularly high, so the model isn't very strong at predicting the binary melanoma rate from the temperature and  variables. Additionally, the AUC value is 0.574, which is close to 0.5 indicating that the logistic regression model is a poor predictor of melanoma rates. Similarly, the 10 fold cross validation yielded an AUC value of 0.553, with an accuracy of 0.530, a sensitivity of 0.750, a specificity of 0.358, and a recall of 0.578.*
+
+
+- **6. (10 pts)** Choose one variable you want to predict (can be one you used from before; either binary or continuous) and run a LASSO regression inputting all the rest of your variables as predictors. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., `lambda.1se`). Discuss which variables are retained. Perform 10-fold CV using this model: if response in binary, compare model's out-of-sample accuracy to that of your logistic regression in part 5; if response is numeric, compare the residual standard error (at the bottom of the summary output, aka RMSE): lower is better fit!
+
+```{R}
+#fit4<-glm(rate_bi~AverageTemp.F+Population+Region+CaseCount, data=melanoma_rates,family=binomial(link="logit"))
+
+#library(glmnet)
+#x<-model.matrix(fit4)[,-1]
+#y<-as.matrix(melanoma_rates$rate_bi)
+#cv<-cv.glmnet(x,y,family='binomial')
+#lasso1<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+#coef(lasso1)
+#pred <- predict(lasso1,type='response',x)
+#table(as.numeric(pred>0.5),y)%>%addmargins
+
+
+#set.seed(1234)
+#k=10
+#data2<-melanoma_rates[sample(nrow(melanoma_rates)),] #put dataset in random order
+#folds<-cut(seq(1:nrow(melanoma_rates)),breaks=k,labels=F) #create folds
+
+#diags<-NULL
+#for(i in 1:k){ # FOR EACH OF 10 FOLDS
+#train2<-data2[folds!=i,] #CREATE TRAINING SET
+#test2<-data2[folds==i,] #CREATE TESTING SET
+#truth2<-test2$rate_bi
+
+#fit5<- glm(rate_bi~Region,Population,data=train2,family='binomial')
+#probs2<- predict(fit2,newdata=test2, type='response')
+
+#diags<-rbind(diags,class_diag(probs2,truth2)) 
+#}
+#apply(diags,2,mean)
+```
+
+*Only the population and region variables are retained, and not temperature. The accuracy here was 0.59, which is nearly identical to that of part 5. Additionally, the AUC is 0.594, which is also nearly identical to before. Specifying the variables which impacted the binary melanoma rate had no bearing on inproving the model :( Overall, and taking into accound the results for each section, despite the stereotype that colder regions have higher melanoma rates, the annual temperature of each state had little bearing on the melanoma rates of that given area.*

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blogs on Phillip Woolley</title>
+    <link>/blog/</link>
+    <description>Recent content in Blogs on Phillip Woolley</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Fri, 13 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Comp Bio Python Work</title>
+      <link>/blog/comp-bio-python-work/</link>
+      <pubDate>Fri, 13 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/comp-bio-python-work/</guid>
+      <description>I was lucky enough to have a couple of semesters worth of Python experience going into the final leg of Computational Biology, but even in those courses we had always just used base Python and functions we made on our own. Getting to explore regex notation and regex related functions was particularly interesting, where large strings can be analyzed by creating a series of requisites for the desired substring. One such example of this is as follows, where a string was scanned for restriction enzyme cut sites of various forms, then split at each site, followed finally by scanning each cut sequence for counts of each respective nucleotide.</description>
+    </item>
+    
+  </channel>
+</rss>

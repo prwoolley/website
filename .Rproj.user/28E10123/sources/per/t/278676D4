@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1576288100696.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3905185697",
+    "id" : "278676D4",
+    "lastKnownWriteTime" : 1576363410,
+    "last_content_update" : 1576363410788,
+    "path" : "~/Desktop/website/content/blog/2019-12-13-comp-bio-python-work.Rmd",
+    "project_path" : "content/blog/2019-12-13-comp-bio-python-work.Rmd",
+    "properties" : {
+        "cursorPosition" : "17,999",
+        "scrollLine" : "12"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
